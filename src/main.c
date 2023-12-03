@@ -7,7 +7,7 @@
 
 int main(int argc, char *argv[])
 {
-    // printf("argc = %d\n\n", argc); // DEL
+    printf("\n");
     if (argc < 2 || !run(argc - 1, argv + 1))
         printHelp();
     waitForKey();
@@ -18,12 +18,10 @@ int run(int argc, char *argv[]) // returns 0 if error
 {
     if (argc % 2 != 0) // no option argument with option
         return 0;
-    // printf("argc = %d\n\n", argc); // DEL
 
     double targetInput = -1.0, fullInput = -1.0, fullOutput = -1.0, fullPowerConsumption = -1.0;
     for (int i = 0; i < argc; i += 2)
     {
-        // printf("argv[i] = %s\n\n", argv[i]); // DEL
         int operation = parseOption(argv[i]);
         if (!operation)
             return 0;
@@ -49,15 +47,19 @@ int run(int argc, char *argv[]) // returns 0 if error
         return 0;
 
     double targetClockPercent = targetInput * 100 / fullInput;
+    double targetOutput = targetInput * targetClockPercent / 100;
     double targetPowerConsumption = fullPowerConsumption * pow(targetClockPercent / 100, 1.321928);
+    double savedPowerConsumption = targetClockPercent * fullPowerConsumption / 100 - targetPowerConsumption;
 
+    printf("\t%-30s%10lf%s", "Target clock percent: ", targetClockPercent, " units per minute");
     printf("\n");
-    printf("\tTarget clock rate: %lf units", targetClockPercent);
+    printf("\t%-30s%10lf%s", "Target output: ", targetOutput, " units per minute");
     printf("\n");
-    printf("\tTarget output: %lf units", targetClockPercent);
+    printf("\t%-30s%10lf%s", "Target power consumption: ", targetPowerConsumption, " MW");
     printf("\n");
-    printf("\tTarget power consumption: %lf MW", targetPowerConsumption);
-    printf("\n\n");
+    printf("\t%-30s%10lf%s", "Saved power consumption: ", savedPowerConsumption, " MW");
+    printf("\n");
+    printf("\n");
 }
 
 int parseOption(char *option) // returns 0 if erroneous input
@@ -73,19 +75,55 @@ int parseOption(char *option) // returns 0 if erroneous input
     return 0;
 }
 
-double getOptionArgumentDouble(char *optionArgument)
+double getOptionArgumentDouble(char *str)
 {
     char *endPtr;
-    double ret = strtod(optionArgument, &endPtr);
+    double ret = strtod(str, &endPtr);
 
-    if (endPtr != optionArgument)
+    if (!strlen(endPtr))
         return ret;
+    else if (endPtr[0] == '/')
+    {
+        double divisor = getDivisor(endPtr);
+        if (divisor < 0)
+            return -1.0;
+        else
+            return ret / divisor;
+    }
     return -1.0; // negative is erroneous anyways
+}
+
+double getDivisor(char *str)
+{
+    char *endPtr;
+    double ret = strtod(str + 1, &endPtr);
+    if (!strlen(endPtr))
+        return ret;
+    return -1.0;
 }
 
 void printHelp()
 {
-    printf("PRINT HELP IS RUN!\n\n");
+    printf("Arguments:");
+    printf("\n");
+    printf("\t%-20s%50s", "-t <value>", "Specify the target input units per minute.");
+    printf("\n");
+    printf("\t%-20s%50s", "--target <value>", "Specify the target input units per minute.");
+    printf("\n");
+    printf("\t%-20s%50s", "-i <value>", "Specify the fully-clocked input units per minute.");
+    printf("\n");
+    printf("\t%-20s%50s", "--input <value>", "Specify the fully-clocked input units per minute.");
+    printf("\n");
+    printf("\t%-20s%50s", "-o <value>", "Specify the fully-clocked output units per minute.");
+    printf("\n");
+    printf("\t%-20s%50s", "--output <value>", "Specify the fully-clocked output units per minute.");
+    printf("\n");
+    printf("\t%-20s%50s", "-p <value>", "Specify the fully-clocked power consumption in MW.");
+    printf("\n");
+    printf("\t%-20s%50s", "--power<value>", "Specify the fully-clocked power consumption in MW.");
+    printf("\n");
+
+    printf("\n");
 }
 
 void waitForKey()

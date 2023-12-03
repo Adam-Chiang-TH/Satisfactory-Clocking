@@ -8,6 +8,8 @@ int parseOption(char *option); // returns 0 if erroneous input
 
 double getOptionArgumentDouble(char *optionArgument);
 
+double getDivisor(char *str);
+
 void printHelp();
 
 void waitForKey();
